@@ -1,0 +1,6 @@
+Flask
+tensorflow
+pandas
+numpy
+scikit-learn
+psycopg2

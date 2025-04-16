@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Personal Budget App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: linear-gradient(135deg, #f8f8f8, #e8e8e8);
+      color: #333;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1, h2, h3 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #444;
+    }
+    .info-box {
+      background-color: #f0f8ff;
+      border-left: 6px solid #007bff;
+      padding: 20px;
+      margin-bottom: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .info-box ul {
+      margin-top: 10px;
+      padding-left: 20px;
+    }
+    .info-box li {
+      margin-bottom: 10px;
+    }
+    form {
+      background: #fdfdfd;
+      padding: 20px;
+      margin-bottom: 30px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    input, button, select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      font-weight: 600;
+    }
+    button:hover { background-color: #0056b3; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      background: #fff;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+    th {
+      background-color: #007bff;
+      color: #fff;
+    }
+    .message {
+      text-align: center;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .success { color: #2ecc71; }
+    .error { color: #e74c3c; }
+    #fetchEnvelopesButton {
+      display: block;
+      width: auto;
+      padding: 10px 20px;
+      margin: 0 auto 20px auto;
+    }
+    .image-section, .pie-section {
+      margin: 30px 0;
+      text-align: center;
+    }
+    .image-section img {
+      width: 100%;
+      max-width: 600px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    canvas {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Personal Budget App</h1>
+
+    <div class="info-box">
+      <h2>Welcome to the AI-Powered Personal Budget App</h2>
+      <p>This app helps you manage your spending using the envelope method and gives AI-powered expense forecasts based on your real-life data.</p>
+      <ul>
+        <li><strong>Create Envelopes:</strong> Allocate budgets for categories like groceries, rent, or travel.</li>
+        <li><strong>Transfer Funds:</strong> Move money between envelopes when priorities change.</li>
+        <li><strong>Forecast Expenses:</strong> Get predictions for next month’s total or category-wise expenses using advanced machine learning.</li>
+      </ul>
+    </div>
+
+    <h2>Create Envelope</h2>
+    <form id="createEnvelopeForm">
+      <label for="envelopeName">Envelope Name:</label>
+      <input type="text" id="envelopeName" placeholder="e.g., Groceries" required>
+      <label for="envelopeAmount">Amount:</label>
+      <input type="number" id="envelopeAmount" placeholder="e.g., 250" required min="0.01" step="0.01">
+      <button type="submit">Create Envelope</button>
+    </form>
+    <div id="createEnvelopeMessage" class="message"></div>
+
+    <h2>List of Envelopes</h2>
+    <button id="fetchEnvelopesButton">Refresh Envelopes</button>
+    <table id="envelopesTable">
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Amount</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h2>Envelope Usage Overview</h2>
+    <div class="pie-section">
+      <canvas id="envelopePieChart"></canvas>
+    </div>
+
+    <h2>Transfer Amount</h2>
+    <form id="transferForm">
+      <label for="fromId">From Envelope ID:</label>
+      <input type="number" id="fromId" required>
+      <label for="toId">To Envelope ID:</label>
+      <input type="number" id="toId" required>
+      <label for="transferAmount">Amount to Transfer:</label>
+      <input type="number" id="transferAmount" required min="0.01" step="0.01">
+      <button type="submit">Transfer</button>
+    </form>
+    <div id="transferMessage" class="message"></div>
+
+    <h2>Monthly Expense Overview (2024)</h2>
+    <div class="image-section">
+      <img src="Figure_2(2).png" alt="Monthly Expense Bar Chart">
+    </div>
+
+    <h2>Expense Forecast</h2>
+    <form id="forecastForm">
+      <label for="forecastCategory">Category (or type "total"):</label>
+      <input type="text" id="forecastCategory" placeholder="e.g., Market, Rent Car, total" required>
+      <button type="submit">Get Forecast</button>
+    </form>
+    <div id="forecastResult" class="message"></div>
+  </div>
+
+  <script>
+    const apiBaseUrl = 'http://localhost:3000';
+    let pieChart;
+    let hasUserCreatedEnvelope = false;
+
+    const defaultEnvelopes = [
+      { id: 1, name: 'Groceries', amount: 150 },
+      { id: 2, name: 'Transport', amount: 70 },
+      { id: 3, name: 'Utilities', amount: 100 }
+    ];
+
+    function populateEnvelopeTable(envelopes) {
+      const tbody = document.querySelector('#envelopesTable tbody');
+      tbody.innerHTML = '';
+      envelopes.forEach(env => {
+        tbody.innerHTML += `<tr><td>${env.id}</td><td>${env.name}</td><td>${env.amount}</td></tr>`;
+      });
+    }
+
+    function renderPieChart(data) {
+      const ctx = document.getElementById('envelopePieChart').getContext('2d');
+      if (pieChart) pieChart.destroy();
+
+      const labels = data.map(e => e.name);
+      const amounts = data.map(e => e.amount);
+      const total = amounts.reduce((a, b) => a + b, 0);
+      const percentages = amounts.map(a => ((a / total) * 100).toFixed(1) + '%');
+
+      pieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels.map((l, i) => `${l} (${percentages[i]})`),
+          datasets: [{
+            data: amounts,
+            backgroundColor: ['#007bff', '#28a745', '#ffc107'],
+            borderColor: '#fff',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { position: 'bottom' },
+            title: { display: true, text: 'Envelope Usage Breakdown' }
+          }
+        }
+      });
+    }
+
+    document.getElementById('createEnvelopeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('envelopeName').value;
+      const amount = parseFloat(document.getElementById('envelopeAmount').value);
+
+      try {
+        await fetch(`${apiBaseUrl}/envelopes`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, amount })
+        });
+        hasUserCreatedEnvelope = true;
+        document.getElementById('createEnvelopeMessage').textContent = 'Envelope created!';
+        document.getElementById('createEnvelopeMessage').className = 'message success';
+        fetchEnvelopes();
+      } catch {
+        document.getElementById('createEnvelopeMessage').textContent = 'Error creating envelope.';
+        document.getElementById('createEnvelopeMessage').className = 'message error';
+      }
+    });
+
+    async function fetchEnvelopes() {
+      const res = await fetch(`${apiBaseUrl}/envelopes`);
+      const envelopes = await res.json();
+      if (hasUserCreatedEnvelope || envelopes.length > 0) {
+        populateEnvelopeTable(envelopes);
+        renderPieChart(envelopes);
+      } else {
+        populateEnvelopeTable(defaultEnvelopes);
+        renderPieChart(defaultEnvelopes);
+      }
+    }
+
+    document.getElementById('fetchEnvelopesButton').addEventListener('click', () => {
+      hasUserCreatedEnvelope = false;
+      populateEnvelopeTable(defaultEnvelopes);
+      renderPieChart(defaultEnvelopes);
+    });
+
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fromId = document.getElementById('fromId').value;
+      const toId = document.getElementById('toId').value;
+      const amount = parseFloat(document.getElementById('transferAmount').value);
+
+      try {
+        const res = await fetch(`${apiBaseUrl}/envelopes/transfer/${fromId}/${toId}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount })
+        });
+        const result = await res.json();
+        document.getElementById('transferMessage').textContent = result.message;
+        document.getElementById('transferMessage').className = 'message success';
+        fetchEnvelopes();
+      } catch {
+        document.getElementById('transferMessage').textContent = 'Transfer failed.';
+        document.getElementById('transferMessage').className = 'message error';
+      }
+    });
+
+    document.getElementById('forecastForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const category = document.getElementById('forecastCategory').value;
+
+      try {
+        const res = await fetch(`${apiBaseUrl}/envelopes/forecast`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ category })
+        });
+        const result = await res.json();
+        if (result.error) {
+          document.getElementById('forecastResult').textContent = 'Error: ' + result.error;
+          document.getElementById('forecastResult').className = 'message error';
+        } else {
+          document.getElementById('forecastResult').textContent = `Predicted Expense: ${result.predicted_amount.toFixed(2)}`;
+          document.getElementById('forecastResult').className = 'message success';
+        }
+      } catch {
+        document.getElementById('forecastResult').textContent = 'Prediction failed.';
+        document.getElementById('forecastResult').className = 'message error';
+      }
+    });
+
+    window.onload = fetchEnvelopes;
+  </script>
+</body>
+</html>
+

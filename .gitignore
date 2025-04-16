@@ -1,0 +1,15 @@
+# Ignore Python virtual environment
+venv/
+
+# Ignore Node.js dependencies
+backend/node_modules/
+
+# Ignore Python compiled files and cache
+ai-service/__pycache__/
+*.pyc
+*.pkl
+*.keras
+
+# OS-specific files
+.DS_Store
+Thumbs.db
