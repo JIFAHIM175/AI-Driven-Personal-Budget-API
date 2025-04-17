@@ -54,7 +54,7 @@
       margin-bottom: 8px;
       font-weight: 600;
     }
-    input, button, select {
+    input, button, select, datalist {
       width: 100%;
       padding: 10px;
       margin-bottom: 15px;
@@ -90,6 +90,7 @@
       text-align: center;
       font-weight: 600;
       margin-bottom: 20px;
+      white-space: pre-line;
     }
     .success { color: #2ecc71; }
     .error { color: #e74c3c; }
@@ -172,10 +173,19 @@
 
     <h2>Expense Forecast</h2>
     <form id="forecastForm">
-      <label for="forecastCategory">Category (or type "total"):</label>
-      <input type="text" id="forecastCategory" placeholder="e.g., Market, Rent Car, total" required>
+      <label for="forecastCategory">Select Category:</label>
+      <input list="categories" id="forecastCategory" placeholder="Start typing or select..." />
+      <datalist id="categories">
+        <option value="total">
+        <option value="Clothing">
+        <option value="Restuarant">
+        <option value="Sport">
+      </datalist>
       <button type="submit">Get Forecast</button>
     </form>
+    <p style="font-size: 14px; color: #666; text-align: center; margin-top: -10px; margin-bottom: 20px;">
+      The AI model uses a CNN-LSTM network trained on your spending data to forecast expenses over the next 30 days.
+    </p>
     <div id="forecastResult" class="message"></div>
   </div>
 
@@ -292,16 +302,34 @@
 
       try {
         const res = await fetch(`${apiBaseUrl}/envelopes/forecast`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ category })
         });
         const result = await res.json();
+
+        const outputBox = document.getElementById('forecastResult');
         if (result.error) {
-          document.getElementById('forecastResult').textContent = 'Error: ' + result.error;
-          document.getElementById('forecastResult').className = 'message error';
+          outputBox.textContent = 'Error: ' + result.error;
+          outputBox.className = 'message error';
         } else {
-          document.getElementById('forecastResult').textContent = `Predicted Expense: ${result.predicted_amount.toFixed(2)}`;
-          document.getElementById('forecastResult').className = 'message success';
+          let output = '';
+          if (result.predicted_amount !== undefined) {
+            output += `Total Forecast: ${result.predicted_amount.toFixed(2)}\n`;
+            if (result.categories) {
+              output += 'Breakdown:\n';
+              for (const [cat, val] of Object.entries(result.categories)) {
+                output += `• ${cat}: ${val.toFixed(2)}\n`;
+              }
+            }
+          } else {
+            const cat = Object.keys(result)[0];
+            const val = result[cat];
+            output += `Forecast for "${cat}": ${val.toFixed(2)}`;
+          }
+
+          outputBox.textContent = output;
+          outputBox.className = 'message success';
         }
       } catch {
         document.getElementById('forecastResult').textContent = 'Prediction failed.';
