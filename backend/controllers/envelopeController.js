@@ -1,4 +1,4 @@
-let envelopes = []  // This will temporarily store envelopes in memory
+let envelopes = []  
 
 const createEnvelope = (req,res,next) => {
     const {name , amount} = req.body;

@@ -12,9 +12,9 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 import pickle
 import matplotlib.pyplot as plt
 
-###########################
+
 # 1. Data Loading & Feature Engineering
-###########################
+
 def fetch_daily_data():
     conn = psycopg2.connect(
         host="localhost",
@@ -97,9 +97,9 @@ def visualize_data(df, subcats):
     plt.tight_layout()
     plt.show()
 
-###########################
+
 # 2. Create Sliding-Window Samples (Log Transform Targets)
-###########################
+
 def create_samples(df, subcats, input_window=120, target_window=30):
     """
     Creates sliding-window samples.
@@ -126,9 +126,9 @@ def create_samples(df, subcats, input_window=120, target_window=30):
 
     return np.array(X_samples), np.array(y_samples), target_dates
 
-###########################
-# 3. Train & Save Model (Evaluations on Scaled Test Set)
-###########################
+
+# 3. Train & Save Model
+
 def train_and_save_model():
     df, subcats = fetch_daily_data()
     X, y, _ = create_samples(df, subcats)
@@ -176,13 +176,13 @@ def train_and_save_model():
         callbacks=[early_stopping, reduce_lr, checkpoint]
     )
 
-    # Evaluate on the scaled test set (evaluations remain in scaled domain)
+    # Evaluate on the test set 
     loss, mae_scaled, mse_scaled = model.evaluate(X_test_scaled, y_test_scaled)
     print(f"Test Loss: {loss:.4f}")
     print(f"Test MSE: {mse_scaled:.4f}")
     print(f"Test MAE: {mae_scaled:.4f}")
 
-    # Visualizations on scaled test set (labels do not include the word "scaled")
+    # Visualizations on test set
     # 1. Training vs. Validation Loss
     plt.figure(figsize=(10, 5))
     plt.plot(history.history['loss'], label='Training Loss')
@@ -232,14 +232,13 @@ def train_and_save_model():
     print("Model trained and saved successfully.")
     return model, subcats
 
-###########################
+
 # 4. Prediction Function (Category-wise & Total in Original Scale)
-###########################
+
 def predict_next_month_expenses(category=None):
     """
-    Uses the most recent 120-day window to predict the next 30-day sum for each category.
-    The model predicts in the log-transformed, scaled domain.
-    We invert the scaling and apply expm1 to get predictions on the original scale.
+    Uses the most recent window to predict the next 30-day sum for each category.
+
     """
     df, _ = fetch_daily_data()
     with open("feature_cols.pkl", "rb") as f:
@@ -281,15 +280,15 @@ def predict_next_month_expenses(category=None):
             return {"error": f"Invalid category. Valid options are: {list(pred_dict.keys())}"}
     return {"predicted_amount": pred_dict['total'], "categories": pred_dict}
 
-###########################
+
 # 5. API Wrapper
-###########################
+
 def predict_next_value(category=None):
     return predict_next_month_expenses(category)
 
-###########################
+
 # Entry Point
-###########################
+
 if __name__ == "__main__":
     model, subcats = train_and_save_model()
     df, subcats = fetch_daily_data()

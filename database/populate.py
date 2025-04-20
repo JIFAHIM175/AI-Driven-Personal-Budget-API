@@ -8,7 +8,7 @@ df = pd.read_csv('database\\11 march 2025.csv')
 # Standardize column names (convert to lowercase and remove extra spaces)
 df.columns = [col.strip().lower() for col in df.columns]
 
-# Optional: display first few rows to check the data
+
 print(df.head())
 
 # Connect to your PostgreSQL database.
